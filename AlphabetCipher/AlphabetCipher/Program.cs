@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace AlphabetCipher {
     class Program {
         private static string alphabet = "abcdefghijklmnopqrstuvwxyz";
         const string sectionDivider = "\n----------------";
 
+        [STAThread]
         static void Main(string[] args) {
             // Prompt user to choose between encoding and decoding a message
             Console.WriteLine(String.Format("Select an option:\n1 - Encode a message\n2 - Decode a message{0}", sectionDivider));
@@ -19,10 +21,8 @@ namespace AlphabetCipher {
                     EncodeMessage();
                     break;
                 case '2':
-                    Console.WriteLine(String.Format("{0}\nThis feature is not yet functional. Try again soon. The program will now close.",
-                        sectionDivider));
-                    System.Threading.Thread.Sleep(3000);
-                    return;
+                    DecodeMessage();
+                    break;
                 default:
                     Console.WriteLine(String.Format("{0}\nInvalid input detected. The program will now close.", sectionDivider));
                     System.Threading.Thread.Sleep(3000);
@@ -32,17 +32,34 @@ namespace AlphabetCipher {
 
         private static void EncodeMessage() {
             Console.WriteLine(String.Format("{0}\nPlease enter the message you wish to encode:", sectionDivider));
-            string messageToEncode = GetMessageToEncode();
+            string messageToEncode = GetMessage();
 
             Console.WriteLine(String.Format("{0}\nPlease enter your secret keyword:", sectionDivider));
             string keyword = GetKeyword();
 
+            string encodedMessage = GetEncodedMessage(messageToEncode, keyword);
+
+            Clipboard.SetText(encodedMessage);
             Console.WriteLine(String.Format("{0}\nYour encoded message is:\n{1}\nYour encoded message has been copied to the clipboard", 
-                sectionDivider ,GetEncodedMessage(messageToEncode, keyword)));
+                sectionDivider, encodedMessage));
             System.Threading.Thread.Sleep(5000);
         }
 
-        private static string GetMessageToEncode() {
+        private static void DecodeMessage() {
+            Console.WriteLine(String.Format("{0}\nPlease enter the message you wish to decode:", sectionDivider));
+            string messageToDecode = GetMessage();
+
+            Console.WriteLine(String.Format("{0}\nPlease enter your secret keyword:", sectionDivider));
+            string keyword = GetKeyword();
+
+            string decodedMessage = GetDecodedMessage(messageToDecode, keyword);
+
+            Console.WriteLine(String.Format("{0}\nYour decoded message is:\n{1}",
+                sectionDivider, decodedMessage));
+            System.Threading.Thread.Sleep(5000);
+        }
+
+        private static string GetMessage() {
             string message = "";
 
             // Don't show the keyword in the console window. Show * symbols instead
@@ -132,6 +149,19 @@ namespace AlphabetCipher {
             }
 
             return alphabetRow;
+        }
+
+        private static string GetDecodedMessage(string message, string keyword) {
+            string decodedMessage = "";
+            string trimmedKeyword = GetTrimmedKeyword(keyword, message.Length);
+
+            for (int i = 0; i < message.Length; i++) {
+                string alphabetRowStartingWithLetter = GetAlphabetRowStartingWithLetter(trimmedKeyword[i]);
+
+                decodedMessage += alphabet[alphabetRowStartingWithLetter.IndexOf(message[i])];
+            }
+
+            return decodedMessage;
         }
     }
 }
